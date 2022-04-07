@@ -8,6 +8,7 @@ import typer
 import os
 import configparser
 import base64
+import prettytable
 
 app = typer.Typer()
 servers_app = typer.Typer()
@@ -100,16 +101,14 @@ def vds_list():
         print('{0:6} {1:15} {2:20} {3:16} {4:2} {5:5} {6:4} '.format(i['id'], state, i['name'], i['ip'], i['configuration']['cpu'], i['configuration']['ram'], i['configuration']['disk_size']))
 
 
-def auth(login, passwd):
+def auth(based):
     """
-    Convert login:pass into base64 and make a request
+    Get access token
 
-    :param login:
-    :param passwd:
+    :param based:
     :return:
     """
-    based = base64.b64encode(str(login+":"+passwd).encode('utf-8'))
-    headers = {"Authorization": "Basic " + based.decode('utf-8')}
+    headers = {"Authorization": "Basic " + based}
 
     result = requests.post(
         'https://public-api.timeweb.com/api/v2/auth',
@@ -122,29 +121,34 @@ def auth(login, passwd):
         result = result.content.decode('utf-8')
         result = json.loads(result)
         result = result['access_token']
-        print(result)
         return result
 
 
 def get_api_key():
     config = configparser.ConfigParser()
     config.read(os.path.join(os.getenv('HOME'), '.config', 'twvdscli.ini'))
-    result = config.get('api', 'key', fallback=None)
-    if result is None:
+    based = config.get('api', 'key', fallback=None)
+    if based is None:
         login = input("Enter login ")
         passwd = input("Enter passwd ")
-        result = auth(login, passwd)
+        based = base64.b64encode(str(login + ":" + passwd).encode('utf-8'))
+        based = based.decode('utf-8')
+
         config.add_section('api')
-        config.set('api', 'key', result)
+        config.set('api', 'key', based)
 
         with open(os.path.join(os.getenv('HOME'), '.config', 'twvdscli.ini'), 'w') as configfile:
             config.write(configfile)
 
+    result = auth(based)
     return result
 
 
 if __name__ == '__main__':
     apikey = get_api_key()
+    if apikey is None:
+        print(typer.style("Auth Error", fg=typer.colors.RED))
+        sys.exit(1)
     reqHeader = {"Authorization": "Bearer " + apikey}
 
     app()
