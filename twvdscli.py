@@ -2,13 +2,13 @@
 
 import json
 import sys
-
 import requests
 import typer
 import os
 import configparser
 import base64
 from prettytable import PrettyTable
+from typing import Optional
 
 app = typer.Typer()
 servers_app = typer.Typer()
@@ -67,7 +67,10 @@ def get_balance():
 
 
 @servers_app.command("start")
-def vds_start(vds_id: int = typer.Argument(...)):
+def vds_start(vds_id: Optional[int] = typer.Argument(None)):
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
     result = Server.start(vds_id)
     if result is None:
         print(typer.style("Error", fg=typer.colors.RED))
@@ -77,7 +80,10 @@ def vds_start(vds_id: int = typer.Argument(...)):
 
 
 @servers_app.command("stop")
-def vds_stop(vds_id: int = typer.Argument(...)):
+def vds_stop(vds_id: Optional[int] = typer.Argument(None)):
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
     result = Server.stop(vds_id)
     if result is None:
         print(typer.style("Error", fg=typer.colors.RED))
