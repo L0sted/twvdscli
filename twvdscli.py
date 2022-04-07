@@ -51,13 +51,16 @@ class Server:
             return result.json()
 
 
+@app.command("balance")
 def get_balance():
     response = requests.get("https://public-api.timeweb.com/api/v1/accounts/finances", headers=reqHeader)
     if not response.ok:
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
-
-    return response.json()
+    else:
+        response = response.json()
+        print('{0:6} {1:}'.format('balance', 'monthly_cost'))
+        print('{0:6} {1:}'.format(response['finances']['balance'], response['finances']['monthly_cost']))
 
 
 @servers_app.command("start")
