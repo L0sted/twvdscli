@@ -10,6 +10,11 @@ import base64
 from prettytable import PrettyTable
 from typing import Optional
 
+# For spinning wheel
+from itertools import cycle
+from time import sleep
+
+
 app = typer.Typer()
 servers_app = typer.Typer()
 app.add_typer(servers_app, name='vds')
@@ -19,6 +24,17 @@ class Server:
     @staticmethod
     def get_list():
         url = 'https://public-api.timeweb.com/api/v2/vds'
+        result = requests.get(
+            url=url,
+            headers=reqHeader
+        )
+        if not result.ok:
+            return None
+        return result.json()
+
+    @staticmethod
+    def get_vds(vds_id):
+        url = "https://public-api.timeweb.com/api/v2/vds/{vds_id}".format(vds_id=vds_id)
         result = requests.get(
             url=url,
             headers=reqHeader
@@ -76,7 +92,14 @@ def vds_start(vds_id: Optional[int] = typer.Argument(None)):
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
 
-    print(result)
+    for frame in cycle(r'-\|/'):
+        state = Server.get_vds(vds_id)
+        if state:
+            if state['server']['status'] == 'on':
+                print(typer.style("\nRunning", fg=typer.colors.GREEN))
+                break
+        print('\r', frame, sep='', end='', flush=True)
+        sleep(0.1)
 
 
 @servers_app.command("stop")
@@ -89,7 +112,14 @@ def vds_stop(vds_id: Optional[int] = typer.Argument(None)):
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
 
-    print(result)
+    for frame in cycle(r'-\|/'):
+        state = Server.get_vds(vds_id)
+        if state:
+            if state['server']['status'] == 'off':
+                print(typer.style("\nStopped", fg=typer.colors.RED))
+                break
+        print('\r', frame, sep='', end='', flush=True)
+        sleep(0.1)
 
 
 @servers_app.command("list")
