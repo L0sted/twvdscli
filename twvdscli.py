@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import json
+import sys
+
 import requests
 import typer
 import os
@@ -20,6 +22,8 @@ class Server:
             url=url,
             headers=reqHeader
         )
+        if not result.ok:
+            return None
         return result.json()
 
     @staticmethod
@@ -49,18 +53,30 @@ class Server:
 
 def get_balance():
     response = requests.get("https://public-api.timeweb.com/api/v1/accounts/finances", headers=reqHeader)
+    if not response.ok:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+
     return response.json()
 
 
 @servers_app.command("start")
 def vds_start(vds_id: int = typer.Argument(...)):
     result = Server.start(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+
     print(result)
 
 
 @servers_app.command("stop")
 def vds_stop(vds_id: int = typer.Argument(...)):
     result = Server.stop(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+
     print(result)
 
 
@@ -68,6 +84,9 @@ def vds_stop(vds_id: int = typer.Argument(...)):
 def vds_list():
     list_of_servers = Server.get_list()
     # print('{0:7} {1:17} {5:16} {2:2} {3:5} {4:4}'.format('state', 'name', 'vcpus', 'memory', 'disk', 'ip'))
+    if list_of_servers is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
     for i in list_of_servers['servers']:
         if i['status'] == 'on':
             state = typer.style("Running", fg=typer.colors.GREEN)
