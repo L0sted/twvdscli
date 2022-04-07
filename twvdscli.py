@@ -8,7 +8,7 @@ import typer
 import os
 import configparser
 import base64
-import prettytable
+from prettytable import PrettyTable
 
 app = typer.Typer()
 servers_app = typer.Typer()
@@ -59,9 +59,11 @@ def get_balance():
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
     else:
+        x = PrettyTable()
+        x.field_names = ["Balance", "Monthly cost"]
         response = response.json()
-        print('{0:6} {1:}'.format('balance', 'monthly_cost'))
-        print('{0:6} {1:}'.format(response['finances']['balance'], response['finances']['monthly_cost']))
+        x.add_row([response['finances']['balance'], response['finances']['monthly_cost']])
+        print(x)
 
 
 @servers_app.command("start")
