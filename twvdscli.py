@@ -99,6 +99,22 @@ class Server:
         else:
             return result.json()
 
+    @staticmethod
+    def remove(vds_id):
+        """
+        Remove VDS
+        """
+        uri = "https://public-api.timeweb.com/api/v1/vds/{id}"
+        result = requests.delete(
+            uri.format(id=vds_id),
+            headers=reqHeader
+        )
+        if not result.ok:
+            return None
+        else:
+            return result.json()
+
+
 
 @app.command("balance")
 def get_balance():
@@ -184,6 +200,27 @@ def vds_clone(vds_id: Optional[int] = typer.Argument(None)):
             if state['server']['status'] == 'on':
                 print(typer.style("\nCloned: " + new_vds['configuration']['caption'], fg=typer.colors.GREEN))
                 break
+        print('\r', frame, sep='', end='', flush=True)
+        sleep(0.1)
+
+
+@servers_app.command("remove")
+def vds_remove(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Remove VDS
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+    result = Server.remove(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    for frame in cycle(r'-\|/'):
+        state = Server.get_vds(vds_id)
+        if not state.get('server'):
+            print(typer.style("\nDeleted", fg=typer.colors.RED))
+            break
         print('\r', frame, sep='', end='', flush=True)
         sleep(0.1)
 
