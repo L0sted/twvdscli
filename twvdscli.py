@@ -208,7 +208,7 @@ def vds_list():
         else:
             state = i['status']
         x.add_row([i['id'], state, i['name'], i['ip'], i['configuration']['cpu'], i['configuration']['ram'], i['configuration']['disk_size']])
-        print(x)
+    print(x)
 
 
 def auth(based):
