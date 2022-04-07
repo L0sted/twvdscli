@@ -21,8 +21,16 @@ app.add_typer(servers_app, name='vds')
 
 
 class Server:
+    """
+    Not a server, but a backend.
+    Everything that works directly with API is here.
+    """
+
     @staticmethod
     def get_list():
+        """
+        Get list of VDSs'
+        """
         url = 'https://public-api.timeweb.com/api/v2/vds'
         result = requests.get(
             url=url,
@@ -34,6 +42,9 @@ class Server:
 
     @staticmethod
     def get_vds(vds_id):
+        """
+        Get VDS info
+        """
         url = "https://public-api.timeweb.com/api/v2/vds/{vds_id}".format(vds_id=vds_id)
         result = requests.get(
             url=url,
@@ -45,6 +56,9 @@ class Server:
 
     @staticmethod
     def start(vds_id):
+        """
+        Start VDS
+        """
         uri = "https://public-api.timeweb.com/api/v1/vds/{id}/{action}"
         result = requests.post(
             uri.format(id=vds_id, action='start'),
@@ -57,6 +71,9 @@ class Server:
 
     @staticmethod
     def stop(vds_id):
+        """
+        Stop VDS
+        """
         uri = "https://public-api.timeweb.com/api/v1/vds/{id}/{action}"
         result = requests.post(
             uri.format(id=vds_id, action='shutdown'),
@@ -70,6 +87,9 @@ class Server:
 
 @app.command("balance")
 def get_balance():
+    """
+    Show balance and Monthly costs
+    """
     response = requests.get("https://public-api.timeweb.com/api/v1/accounts/finances", headers=reqHeader)
     if not response.ok:
         print(typer.style("Error", fg=typer.colors.RED))
@@ -84,6 +104,9 @@ def get_balance():
 
 @servers_app.command("start")
 def vds_start(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Start VDS, show cute spinner until VDS starts
+    """
     if vds_id is None:
         vds_list()
         vds_id = input("Enter VDS ID: ")
@@ -104,6 +127,9 @@ def vds_start(vds_id: Optional[int] = typer.Argument(None)):
 
 @servers_app.command("stop")
 def vds_stop(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Stop VDS, show cute spinner until VDS stops
+    """
     if vds_id is None:
         vds_list()
         vds_id = input("Enter VDS ID: ")
@@ -124,6 +150,10 @@ def vds_stop(vds_id: Optional[int] = typer.Argument(None)):
 
 @servers_app.command("list")
 def vds_list():
+    """
+    Show list of VDSes
+    ID, State, Name, IP, CPUs, Ram, Disk
+    """
     list_of_servers = Server.get_list()
     x = PrettyTable()
     x.field_names = ['id', 'state', 'name', 'ip', 'cpus', 'ram', 'disk']
@@ -143,10 +173,7 @@ def vds_list():
 
 def auth(based):
     """
-    Get access token
-
-    :param based:
-    :return:
+    Get access token based on base64'ed login:password
     """
     headers = {"Authorization": "Basic " + based}
 
@@ -165,6 +192,9 @@ def auth(based):
 
 
 def get_api_key():
+    """
+    Load base64'ed login:pass and get access token
+    """
     config = configparser.ConfigParser()
     config.read(os.path.join(os.getenv('HOME'), '.config', 'twvdscli.ini'))
     based = config.get('api', 'key', fallback=None)
