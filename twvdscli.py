@@ -89,7 +89,8 @@ def vds_stop(vds_id: int = typer.Argument(...)):
 @servers_app.command("list")
 def vds_list():
     list_of_servers = Server.get_list()
-    # print('{0:7} {1:17} {5:16} {2:2} {3:5} {4:4}'.format('state', 'name', 'vcpus', 'memory', 'disk', 'ip'))
+    x = PrettyTable()
+    x.field_names = ['id', 'state', 'name', 'ip', 'cpus', 'ram', 'disk']
     if list_of_servers is None:
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
@@ -100,7 +101,8 @@ def vds_list():
             state = typer.style('Stopped', fg=typer.colors.RED)
         else:
             state = i['status']
-        print('{0:6} {1:15} {2:20} {3:16} {4:2} {5:5} {6:4} '.format(i['id'], state, i['name'], i['ip'], i['configuration']['cpu'], i['configuration']['ram'], i['configuration']['disk_size']))
+        x.add_row([i['id'], state, i['name'], i['ip'], i['configuration']['cpu'], i['configuration']['ram'], i['configuration']['disk_size']])
+        print(x)
 
 
 def auth(based):
