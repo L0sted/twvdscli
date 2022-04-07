@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-import json
 
+import json
 import requests
 import typer
 import os
