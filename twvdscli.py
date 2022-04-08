@@ -291,6 +291,7 @@ def auth(based):
         json=dict(refresh_token="string"),
         headers=headers
     )
+
     if not result.ok:
         return None
     else:
