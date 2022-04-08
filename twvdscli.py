@@ -291,6 +291,7 @@ def auth(based):
         json=dict(refresh_token="string"),
         headers=headers
     )
+
     if not result.ok:
         return None
     else:
@@ -322,11 +323,13 @@ def get_api_key():
     result = auth(based)
     return result
 
-
-if __name__ == '__main__':
+def main():
     apikey = get_api_key()
     if apikey is None:
         print(typer.style("Auth Error", fg=typer.colors.RED))
         sys.exit(1)
     reqHeader = {"Authorization": "Bearer " + apikey}
     app()
+
+if __name__ == '__main__':
+    main()
