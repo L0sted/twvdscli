@@ -18,6 +18,8 @@ from time import sleep
 app = typer.Typer()
 servers_app = typer.Typer()
 app.add_typer(servers_app, name='vds')
+backups_app = typer.Typer()
+servers_app.add_typer(backups_app, name='backup')
 
 
 class Server:
@@ -114,6 +116,36 @@ class Server:
         else:
             return result.json()
 
+
+class Backups:
+    @staticmethod
+    def create(vds_id):
+        disk_id = Server.get_vds(vds_id)['server']['disk_stats']['disk_id']
+
+        uri = "https://public-api.timeweb.com/api/v1/backups/vds/{id}/drive/{disk_id}"
+        result = requests.post(
+            uri.format(id=vds_id, disk_id=disk_id),
+            headers=reqHeader
+        )
+        if result.ok:
+            return result.json()
+        else:
+            return None
+
+
+@backups_app.command("create")
+def create_backup(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Create backup of main disk
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+    result = Backups.create(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    print(result.json())
 
 
 @app.command("balance")
@@ -297,5 +329,4 @@ if __name__ == '__main__':
         print(typer.style("Auth Error", fg=typer.colors.RED))
         sys.exit(1)
     reqHeader = {"Authorization": "Bearer " + apikey}
-
     app()
