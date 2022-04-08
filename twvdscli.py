@@ -322,13 +322,16 @@ def get_api_key():
     result = auth(based)
     return result
 
+
 def main():
     apikey = get_api_key()
     if apikey is None:
         print(typer.style("Auth Error", fg=typer.colors.RED))
         sys.exit(1)
-    reqHeader = {"Authorization": "Bearer " + apikey}
+    reqHeader['Authorization'] += apikey
     app()
 
+
 if __name__ == '__main__':
+    reqHeader = {"Authorization": "Bearer "}
     main()
