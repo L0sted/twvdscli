@@ -276,7 +276,15 @@ def vds_list():
             state = typer.style('Stopped', fg=typer.colors.RED)
         else:
             state = i['status']
-        x.add_row([i['id'], state, i['name'], i['ip'], i['configuration']['cpu'], i['configuration']['ram'], i['configuration']['disk_size']])
+        x.add_row([
+            i['id'],
+            state,
+            i['name'],
+            i['ip'],
+            i['configuration']['cpu'],
+            i['configuration']['ram'],
+            i['configuration']['disk_size']
+        ])
     print(x)
 
 
