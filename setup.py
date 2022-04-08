@@ -20,13 +20,14 @@ setup(
     python_requires = '>=3.6',
     py_modules = ['twvdscli'],
     install_requires = [
+        'click==7.1.1'
         'typer==0.4.0',
         'prettytable==3.2.0',
         'wcwidth==0.2.5'
     ],
     entry_points = {
         'console_scripts': [
-            'twvdscli = twvdscli'
+            'twvdscli = twvdscli:main'
         ]
     }
 )
