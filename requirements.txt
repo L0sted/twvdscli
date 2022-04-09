@@ -1,7 +1,3 @@
 click==8.0.4
-pip==22.0.4
 prettytable==3.2.0
-setuptools==60.9.3
 typer==0.4.0
-wcwidth==0.2.5
-wheel==0.37.1
