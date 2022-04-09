@@ -132,6 +132,19 @@ class Backups:
         else:
             return None
 
+    @staticmethod
+    def list(vds_id):
+        disk_id = Server.get_vds(vds_id)['server']['disk_stats']['disk_id']
+        uri = "https://public-api.timeweb.com/api/v1/backups/vds/{id}/drive/{disk_id}"
+        result = requests.get(
+            uri.format(id=vds_id, disk_id=disk_id),
+            headers=reqHeader
+        )
+        if result.ok:
+            return result.json()
+        else:
+            return None
+
 
 @backups_app.command("create")
 def create_backup(vds_id: Optional[int] = typer.Argument(None)):
@@ -145,7 +158,28 @@ def create_backup(vds_id: Optional[int] = typer.Argument(None)):
     if result is None:
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
-    print(result.json())
+    else:
+        print(typer.style("Success", fg=typer.colors.GREEN))
+
+
+@backups_app.command("list")
+def list_backup(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    List backups
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+    result = Backups.list(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    else:
+        x = PrettyTable()
+        x.field_names = ["id", "Date", "Size", "Cost", "Mounted"]
+        for i in result['backups']:
+            x.add_row([i['id'], i['c_date'], i['drive_size'], i['cost_backup'], i['mounted']])
+        print(x)
 
 
 @app.command("balance")
