@@ -145,6 +145,20 @@ class Backups:
         else:
             return None
 
+    @staticmethod
+    def remove(vds_id, backup_id):
+        disk_id = Server.get_vds(vds_id)['server']['disk_stats']['disk_id']
+
+        uri = "https://public-api.timeweb.com/api/v1/backups/{backup_id}/vds/{id}/drive/{disk_id}"
+        result = requests.delete(
+            uri.format(id=vds_id, disk_id=disk_id, backup_id=backup_id),
+            headers=reqHeader
+        )
+        if result.ok:
+            return result.json()
+        else:
+            return None
+
 
 @backups_app.command("create")
 def create_backup(vds_id: Optional[int] = typer.Argument(None)):
@@ -176,10 +190,26 @@ def list_backup(vds_id: Optional[int] = typer.Argument(None)):
         sys.exit(1)
     else:
         x = PrettyTable()
-        x.field_names = ["id", "Date", "Size", "Cost", "Mounted"]
+        x.field_names = ["id", "Date", "Size", "Cost", "Mounted", "status"]
         for i in result['backups']:
-            x.add_row([i['id'], i['c_date'], i['drive_size'], i['cost_backup'], i['mounted']])
+            x.add_row([i['id'], i['c_date'], i['drive_size'], i['cost_backup'], i['mounted'], i['status']])
         print(x)
+
+
+@backups_app.command("remove")
+def remove_backup(vds_id: Optional[int] = typer.Argument(None), backup_id: int = typer.Option(...)):
+    """
+    Remove backup of main disk
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+    result = Backups.remove(vds_id, backup_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    else:
+        print(typer.style("Success", fg=typer.colors.GREEN))
 
 
 @app.command("balance")
