@@ -18,8 +18,12 @@ from time import sleep
 app = typer.Typer()
 servers_app = typer.Typer()
 app.add_typer(servers_app, name='vds')
+
 backups_app = typer.Typer()
 servers_app.add_typer(backups_app, name='backup')
+
+snapshot_app = typer.Typer()
+servers_app.add_typer(snapshot_app, name='snap')
 
 
 class Server:
@@ -158,6 +162,126 @@ class Backups:
             return result.json()
         else:
             return None
+
+
+class Snapshots:
+    @staticmethod
+    def get(vds_id):
+        uri = "https://public-api.timeweb.com/api/v1/restore-points/{vds_id}"
+        result = requests.get(
+            uri.format(vds_id=vds_id),
+            headers=reqHeader
+        )
+        if result.ok:
+            return result.json()
+        else:
+            return None
+
+    @staticmethod
+    def create(vds_id):
+        uri = "https://public-api.timeweb.com/api/v1/restore-points/{vds_id}/create"
+        result = requests.post(
+            uri.format(vds_id=vds_id),
+            headers=reqHeader
+        )
+        if result.ok:
+            return result.json()
+        else:
+            return None
+
+    @staticmethod
+    def remove(vds_id):
+        uri = "https://public-api.timeweb.com/api/v1/restore-points/{vds_id}/commit"
+        result = requests.post(
+            uri.format(vds_id=vds_id),
+            headers=reqHeader
+        )
+        if result.ok:
+            return result.json()
+        else:
+            return None
+
+    @staticmethod
+    def restore(vds_id):
+        uri = "https://public-api.timeweb.com/api/v1/restore-points/{vds_id}/rollback"
+        result = requests.post(
+            uri.format(vds_id=vds_id),
+            headers=reqHeader
+        )
+        if result.ok:
+            return result.json()
+        else:
+            return None
+
+
+@snapshot_app.command("get")
+def get_snap(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Get snapshot
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+    result = Snapshots.get(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    else:
+        x = PrettyTable()
+        x.field_names = ["VDS ID", "ID", "Created" , "Expire"]
+        x.add_row([vds_id, result['restore_point']['id'], result['restore_point']['created_at'], result['restore_point']['expired_at']])
+        print(x)
+
+
+@snapshot_app.command("create")
+def create_snap(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Create snapshot
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+
+    result = Snapshots.create(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    else:
+        print(typer.style("Success", fg=typer.colors.GREEN))
+
+
+@snapshot_app.command("restore")
+def rollback_snap(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Restore VDS from snapshot
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+
+    result = Snapshots.restore(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    else:
+        print(typer.style("Success", fg=typer.colors.GREEN))
+
+
+@snapshot_app.command("remove")
+def remove_snap(vds_id: Optional[int] = typer.Argument(None)):
+    """
+    Remove snapshot
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+
+    result = Snapshots.remove(vds_id)
+    if result is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    else:
+        print(typer.style("Success", fg=typer.colors.GREEN))
 
 
 @backups_app.command("create")
