@@ -17,13 +17,13 @@ from time import sleep
 
 app = typer.Typer()
 servers_app = typer.Typer()
-app.add_typer(servers_app, name='vds')
+app.add_typer(servers_app, name='vds', help='Control VDS Servers, their snapshots and backups')
 
 backups_app = typer.Typer()
-servers_app.add_typer(backups_app, name='backup')
+servers_app.add_typer(backups_app, name='backup', help='Create/Delete backup')
 
 snapshot_app = typer.Typer()
-servers_app.add_typer(snapshot_app, name='snap')
+servers_app.add_typer(snapshot_app, name='snap', help='Create/Rollback/Delete snapshot')
 
 
 class Server:
@@ -356,7 +356,7 @@ def get_balance():
 @servers_app.command("start")
 def vds_start(vds_id: Optional[int] = typer.Argument(None)):
     """
-    Start VDS, show cute spinner until VDS starts
+    Start VDS
     """
     if vds_id is None:
         vds_list()
@@ -379,7 +379,7 @@ def vds_start(vds_id: Optional[int] = typer.Argument(None)):
 @servers_app.command("stop")
 def vds_stop(vds_id: Optional[int] = typer.Argument(None)):
     """
-    Stop VDS, show cute spinner until VDS stops
+    Stop VDS
     """
     if vds_id is None:
         vds_list()
@@ -402,7 +402,7 @@ def vds_stop(vds_id: Optional[int] = typer.Argument(None)):
 @servers_app.command("clone")
 def vds_clone(vds_id: Optional[int] = typer.Argument(None)):
     """
-    Clone VDS, show cute spinner until VDS stops
+    Clone VDS
     """
     if vds_id is None:
         vds_list()
