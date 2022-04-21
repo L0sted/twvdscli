@@ -16,6 +16,10 @@ from time import sleep
 
 
 app = typer.Typer()
+
+dbs_app = typer.Typer()
+app.add_typer(dbs_app, name='dbs', help='Control Managed databases')
+
 servers_app = typer.Typer()
 app.add_typer(servers_app, name='vds', help='Control VDS Servers, their snapshots and backups')
 
@@ -25,6 +29,21 @@ servers_app.add_typer(backups_app, name='backup', help='Create/Delete backup')
 snapshot_app = typer.Typer()
 servers_app.add_typer(snapshot_app, name='snap', help='Create/Rollback/Delete snapshot')
 
+class Dbaas:
+    """
+    DataBases As A Service
+    """
+    def list():
+        url = 'https://public-api.timeweb.com/api/v1/dbs'
+        result = requests.get(
+            url=url,
+            headers=reqHeader
+        )
+        if not result.ok:
+            return None
+        return result.json()
+        
+        
 
 class Server:
     """
@@ -352,6 +371,38 @@ def get_balance():
         x.add_row([response['finances']['balance'], response['finances']['monthly_cost']])
         print(x)
 
+
+@dbs_app.command("list")
+def list_dbs():
+    """
+    Show list of VDSes
+    ID, State, Name, IP, CPUs, Ram, Disk
+    """
+    list_of_dbaas = Dbaas.list()
+    x = PrettyTable()
+    x.field_names = ['id', 'state', 'name', 'ip', 'local_ip', 'password', 'type']
+    if list_of_dbaas is None:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    for i in list_of_dbaas['dbs']:
+        if i['status'] == 'started':
+            state = typer.style("Running", fg=typer.colors.GREEN)
+        #elif i['status'] == 'off':
+        #    state = typer.style('Stopped', fg=typer.colors.RED)
+        else:
+            state = i['status']
+        x.add_row([
+            i['id'],
+            state,
+            i['name'],
+            i['ip'],
+            i['local_ip'],
+            i['password'],
+            i['type']
+        ])
+    print(x)
+
+    
 
 @servers_app.command("start")
 def vds_start(vds_id: Optional[int] = typer.Argument(None)):
