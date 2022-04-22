@@ -29,6 +29,7 @@ servers_app.add_typer(backups_app, name='backup', help='Create/Delete backup')
 snapshot_app = typer.Typer()
 servers_app.add_typer(snapshot_app, name='snap', help='Create/Rollback/Delete snapshot')
 
+
 class Dbaas:
     """
     DataBases As A Service
@@ -43,7 +44,16 @@ class Dbaas:
             return None
         return result.json()
         
-        
+    def get(db_id):
+        url = 'https://public-api.timeweb.com/api/v1/dbs/{db_id}'
+        result = requests.get(
+            url=url.format(db_id=db_id),
+            headers=reqHeader
+        )
+        if not result.ok:
+            return None
+        return result.json()
+
 
 class Server:
     """
@@ -375,8 +385,8 @@ def get_balance():
 @dbs_app.command("list")
 def list_dbs():
     """
-    Show list of VDSes
-    ID, State, Name, IP, CPUs, Ram, Disk
+    Show list of DBs
+    ID, State, Name, IP, local IP, Password, Type
     """
     list_of_dbaas = Dbaas.list()
     x = PrettyTable()
@@ -387,7 +397,7 @@ def list_dbs():
     for i in list_of_dbaas['dbs']:
         if i['status'] == 'started':
             state = typer.style("Running", fg=typer.colors.GREEN)
-        #elif i['status'] == 'off':
+#        elif i['status'] == 'off':
         #    state = typer.style('Stopped', fg=typer.colors.RED)
         else:
             state = i['status']
@@ -409,7 +419,6 @@ def list_dbs():
             type_of_db
         ])
     print(x)
-
     
 
 @servers_app.command("start")
