@@ -421,6 +421,22 @@ def list_dbs():
     print(x)
     
 
+@servers_app.command("goto")
+def vds_goto(vds_id: Optional[int] = typer.Argument(None), 
+            port: int = typer.Option(22, help="Specify non standart SSH port.")):
+    """
+    Connect via SSH to VDS
+    """
+    if vds_id is None:
+        vds_list()
+        vds_id = input("Enter VDS ID: ")
+    
+    vds = Server.get_vds(vds_id)
+    ip = vds['server']['ip']
+    
+    os.system('ssh -p {port} root@{ip}'.format(port=port, ip=ip))
+
+
 @servers_app.command("start")
 def vds_start(vds_id: Optional[int] = typer.Argument(None)):
     """
