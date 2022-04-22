@@ -391,6 +391,14 @@ def list_dbs():
         #    state = typer.style('Stopped', fg=typer.colors.RED)
         else:
             state = i['status']
+        if i['type'] == 'mysql':
+            type_of_db = 'MySQL 8'
+        elif i['type'] == 'mysql5':
+            type_of_db = 'MySQL 5.7'
+        elif i['type'] == 'postgres':
+            type_of_db = 'PostgreSQL 13'
+        else:
+            type_of_db = i['type']
         x.add_row([
             i['id'],
             state,
@@ -398,7 +406,7 @@ def list_dbs():
             i['ip'],
             i['local_ip'],
             i['password'],
-            i['type']
+            type_of_db
         ])
     print(x)
 
