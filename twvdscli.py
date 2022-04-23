@@ -43,7 +43,7 @@ class Dbaas:
         if not result.ok:
             return None
         return result.json()
-        
+
     def get(db_id):
         url = 'https://public-api.timeweb.com/api/v1/dbs/{db_id}'
         result = requests.get(
@@ -257,7 +257,7 @@ def get_snap(vds_id: Optional[int] = typer.Argument(None)):
         sys.exit(1)
     else:
         x = PrettyTable()
-        x.field_names = ["VDS ID", "ID", "Created" , "Expire"]
+        x.field_names = ["VDS ID", "ID", "Created", "Expire"]
         x.add_row([vds_id, result['restore_point']['id'], result['restore_point']['created_at'], result['restore_point']['expired_at']])
         print(x)
 
@@ -383,7 +383,7 @@ def get_balance():
 
 
 @dbs_app.command("list")
-def list_dbs():
+def dbs_list():
     """
     Show list of DBs
     ID, State, Name, IP, local IP, Password, Type
@@ -419,21 +419,46 @@ def list_dbs():
             type_of_db
         ])
     print(x)
-    
+
+
+@dbs_app.command("goto")
+def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
+    """
+    Connect to DB CLI
+    """
+    cmd_mysql = "mysql -u gen_user -p{password} -h {ip} -P 3306 -D default_db"
+    cmd_psql = "psql -d default_db -U  gen_user -W -p 5432 -h {ip}"
+    # Get DB ID if not specified
+    if db_id is None:
+        dbs_list()
+        db_id = input("Enter DB ID: ")
+    # Get type of DB, password, IP
+    db_data = Dbaas.get(db_id)
+
+    db_type = db_data['db']['type']
+    db_pass = db_data['db']['password']
+    db_ip = db_data['db']['ip']
+
+    if db_type == 'mysql' or db_type == 'mysql5':
+        os.system(cmd_mysql.format(ip=db_ip, password=db_pass))
+    elif db_type == 'postgres':
+        print("Password: ", db_pass)
+        os.system(cmd_psql.format(ip=db_ip))
+
 
 @servers_app.command("goto")
-def vds_goto(vds_id: Optional[int] = typer.Argument(None), 
-            port: int = typer.Option(22, help="Specify non standart SSH port.")):
+def vds_goto(vds_id: Optional[int] = typer.Argument(None),
+             port: int = typer.Option(22, help="Specify non standart SSH port.")):
     """
     Connect via SSH to VDS
     """
     if vds_id is None:
         vds_list()
         vds_id = input("Enter VDS ID: ")
-    
+
     vds = Server.get_vds(vds_id)
     ip = vds['server']['ip']
-    
+
     os.system('ssh -p {port} root@{ip}'.format(port=port, ip=ip))
 
 
