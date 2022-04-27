@@ -34,6 +34,7 @@ class Dbaas:
     """
     DataBases As A Service
     """
+    @staticmethod
     def list():
         url = 'https://public-api.timeweb.com/api/v1/dbs'
         result = requests.get(
@@ -44,10 +45,29 @@ class Dbaas:
             return None
         return result.json()
 
+    @staticmethod
     def get(db_id):
         url = 'https://public-api.timeweb.com/api/v1/dbs/{db_id}'
         result = requests.get(
             url=url.format(db_id=db_id),
+            headers=reqHeader
+        )
+        if not result.ok:
+            return None
+        return result.json()
+
+    @staticmethod
+    def create(passwd, name, db_type):
+        url = 'https://public-api.timeweb.com/api/v1/dbs'
+        if db_type == 'postgres':
+            service_type = 357
+        else:
+            service_type = 341
+        data = dict(host="%", login="user", password=passwd, name=name, type=db_type,
+                    hash_type="caching_sha2", service_type=service_type)
+        result = requests.post(
+            url=url,
+            json=data,
             headers=reqHeader
         )
         if not result.ok:
@@ -382,6 +402,23 @@ def get_balance():
         print(x)
 
 
+@dbs_app.command("create")
+def dbs_create(passwd: str = typer.Option(..., help="DB password"), name: str = typer.Option(..., help="DB Name"), db_type: str = typer.Option(..., help="mysql5/mysql/postgres")):
+    # service_type == 341 - mysql
+    # service_type == 357 - pgsql
+    result = Dbaas.create(passwd=passwd, name=name, db_type=db_type)
+    # We need to get id from result['db']['id']
+    db_id = result['db']['id']
+    for frame in cycle(r'-\|/'):
+        state = Dbaas.get(db_id)
+        if state:
+            if state['db']['status'] == 'started':
+                print(typer.style("\nCreated DB: " + name, fg=typer.colors.GREEN))
+                break
+        print('\r', frame, sep='', end='', flush=True)
+        sleep(0.1)
+
+
 @dbs_app.command("list")
 def dbs_list():
     """
@@ -426,8 +463,8 @@ def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
     """
     Connect to DB CLI
     """
-    cmd_mysql = "mysql -u gen_user -p{password} -h {ip} -P 3306 -D default_db"
-    cmd_psql = "psql -d default_db -U  gen_user -W -p 5432 -h {ip}"
+    cmd_mysql = "mysql -u {login} -p{password} -h {ip} -P 3306 -D default_db"
+    cmd_psql = "psql -d default_db -U  {login} -W -p 5432 -h {ip}"
     # Get DB ID if not specified
     if db_id is None:
         dbs_list()
@@ -438,12 +475,12 @@ def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
     db_type = db_data['db']['type']
     db_pass = db_data['db']['password']
     db_ip = db_data['db']['ip']
-
+    db_user = db_data['db']['login']
     if db_type == 'mysql' or db_type == 'mysql5':
-        os.system(cmd_mysql.format(ip=db_ip, password=db_pass))
+        os.system(cmd_mysql.format(ip=db_ip, password=db_pass, login=db_user))
     elif db_type == 'postgres':
         print("Password: ", db_pass)
-        os.system(cmd_psql.format(ip=db_ip))
+        os.system(cmd_psql.format(ip=db_ip, login=db_user))
 
 
 @servers_app.command("goto")
