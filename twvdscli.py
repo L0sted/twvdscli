@@ -403,13 +403,19 @@ def get_balance():
 
 
 @dbs_app.command("create")
-def dbs_create(passwd: str = typer.Option(..., help="DB password"), name: str = typer.Option(..., help="DB Name"), db_type: str = typer.Option(..., help="mysql5/mysql/postgres")):
+def dbs_create(passwd: str = typer.Option(..., help="DB password"),
+               name: str = typer.Option(..., help="DB Name"),
+               db_type: str = typer.Option(..., help="mysql5/mysql/postgres"),
+               raw: bool = typer.Option(False, help="Get result as raw json")):
     """
     Create database
     """
     # service_type == 341 - mysql
     # service_type == 357 - pgsql
     result = Dbaas.create(passwd=passwd, name=name, db_type=db_type)
+    if raw:
+        print(result)
+        return
     # We need to get id from result['db']['id']
     db_id = result['db']['id']
     for frame in cycle(r'-\|/'):
