@@ -425,7 +425,7 @@ def dbs_create(passwd: str = typer.Option(..., help="DB password"), name: str = 
 @dbs_app.command("list")
 def dbs_list():
     """
-    Show list of DBs
+    Show list of DBs:
     ID, State, Name, IP, local IP, Password, Type
     """
     list_of_dbaas = Dbaas.list()
@@ -549,7 +549,8 @@ def vds_stop(vds_id: Optional[int] = typer.Argument(None)):
 
 
 @servers_app.command("clone")
-def vds_clone(vds_id: Optional[int] = typer.Argument(None)):
+def vds_clone(vds_id: Optional[int] = typer.Argument(None),
+              raw: bool = typer.Option(False, help="Say hi formally.")):
     """
     Clone VDS
     """
@@ -633,7 +634,6 @@ def auth(based):
 
     result = requests.post(
         'https://public-api.timeweb.com/api/v2/auth',
-        json=dict(refresh_token="string"),
         headers=headers
     )
     if not result.ok:
