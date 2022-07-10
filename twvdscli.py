@@ -581,6 +581,13 @@ def vds_clone(vds_id: Optional[int] = typer.Argument(None),
     Clone VDS
     """
     if vds_id is None:
+        if raw:
+            print(
+                dict(
+                    error="No VDS ID provided"
+                )
+            )
+            return 1
         vds_list()
         vds_id = input("Enter VDS ID: ")
     new_vds = Server.clone(vds_id)
@@ -588,6 +595,9 @@ def vds_clone(vds_id: Optional[int] = typer.Argument(None),
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
     else:
+        if raw:
+            print(new_vds)
+            return
         new_vds = new_vds['server']
 
     for frame in cycle(r'-\|/'):
