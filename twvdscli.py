@@ -429,12 +429,15 @@ def dbs_create(passwd: str = typer.Option(..., help="DB password"),
 
 
 @dbs_app.command("list")
-def dbs_list():
+def dbs_list(raw: bool = typer.Option(False, help="Get result as raw json")):
     """
     Show list of DBs:
     ID, State, Name, IP, local IP, Password, Type
     """
     list_of_dbaas = Dbaas.list()
+    if raw:
+        print(list_of_dbaas)
+        return
     x = PrettyTable()
     x.field_names = ['id', 'state', 'name', 'ip', 'local_ip', 'password', 'type']
     if list_of_dbaas is None:
