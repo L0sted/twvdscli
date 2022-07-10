@@ -512,18 +512,27 @@ def vds_goto(vds_id: Optional[int] = typer.Argument(None),
 
 
 @servers_app.command("start")
-def vds_start(vds_id: Optional[int] = typer.Argument(None)):
+def vds_start(vds_id: Optional[int] = typer.Argument(None), raw: bool = typer.Option(False, help="Get result as raw json")):
     """
     Start VDS
     """
     if vds_id is None:
+        if raw:
+            print(
+                dict(
+                    error="No VDS ID provided"
+                )
+            )
+            return 1
         vds_list()
         vds_id = input("Enter VDS ID: ")
     result = Server.start(vds_id)
     if result is None:
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
-
+    if raw:
+        print(result)
+        return
     for frame in cycle(r'-\|/'):
         state = Server.get_vds(vds_id)
         if state:
