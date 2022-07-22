@@ -576,7 +576,7 @@ def vds_stop(vds_id: Optional[int] = typer.Argument(None), raw: bool = typer.Opt
 
 @servers_app.command("clone")
 def vds_clone(vds_id: Optional[int] = typer.Argument(None),
-              raw: bool = typer.Option(False, help="Say hi formally.")):
+              raw: bool = typer.Option(False, help="Get result as raw json")):
     """
     Clone VDS
     """
@@ -587,7 +587,7 @@ def vds_clone(vds_id: Optional[int] = typer.Argument(None),
                     error="No VDS ID provided"
                 )
             )
-            return 1
+            sys.exit(1)
         vds_list()
         vds_id = input("Enter VDS ID: ")
     new_vds = Server.clone(vds_id)
@@ -611,17 +611,29 @@ def vds_clone(vds_id: Optional[int] = typer.Argument(None),
 
 
 @servers_app.command("remove")
-def vds_remove(vds_id: Optional[int] = typer.Argument(None)):
+def vds_remove(vds_id: Optional[int] = typer.Argument(None),
+               raw: bool = typer.Option(False, help="Get result as raw json")):
     """
     Remove VDS
     """
     if vds_id is None:
+        if raw:
+            print(
+                dict(
+                    error="No VDS ID provided"
+                )
+            )
+            sys.exit(1)
         vds_list()
         vds_id = input("Enter VDS ID: ")
     result = Server.remove(vds_id)
     if result is None:
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
+    else:
+        if raw:
+            print(result)
+            sys.exit(0)
     for frame in cycle(r'-\|/'):
         state = Server.get_vds(vds_id)
         if not state.get('server'):
