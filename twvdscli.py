@@ -496,22 +496,27 @@ def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
 
 
 @servers_app.command("create")
-def vds_create():
+def vds_create(
+        name: str = typer.Option(..., help="VDS Name"),
+        os: int = typer.Option(..., help="OS ID"),
+        preset: int = typer.Option(17, help="OS ID"),
+        comment: str = typer.Option("", help="Comment")
+):
     data = {
       "server": {
         "configuration": {
-          "caption": "test from API",
-          "disk_size": 5, # dont give a fuck
-          "network_bandwidth": 100, # dont give a fuck
-          "os": 47, #ubuntu 18.04
-          "xen_cpu": 2, # dont give a fuck
-          "xen_ram": 4096, # dont give a fuck
+          "caption": name,
+          # "disk_size": 5, # dont give a fuck
+          # "network_bandwidth": 100, # dont give a fuck
+          "os": os, # 47 - ubuntu 18.04
+          # "xen_cpu": 2, # dont give a fuck
+          # "xen_ram": 4096, # dont give a fuck
           "ddos_guard": False
         },
-        "comment": "comment",
+        "comment": comment,
         "group_id": 350519, # https://public-api.timeweb.com/api/v1/accounts/{user}/group
-        "name": "string",
-        "preset_id": 5,
+        "name": "string", # what is this for?
+        "preset_id": preset, # you can not create vds without this, but how to create flexible vds? (example: 20)
         "install_ssh_key": "",
         "server_id": None,
         "local_networks": []
