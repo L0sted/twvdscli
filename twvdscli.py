@@ -495,6 +495,46 @@ def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
         os.system(cmd_psql.format(ip=db_ip, login=db_user))
 
 
+@servers_app.command("create")
+def vds_create():
+    data = {
+      "server": {
+        "configuration": {
+          "caption": "test from API",
+          "disk_size": 5, # dont give a fuck
+          "network_bandwidth": 100, # dont give a fuck
+          "os": 47, #ubuntu 18.04
+          "xen_cpu": 2, # dont give a fuck
+          "xen_ram": 4096, # dont give a fuck
+          "ddos_guard": False
+        },
+        "comment": "comment",
+        "group_id": 350519, # https://public-api.timeweb.com/api/v1/accounts/{user}/group
+        "name": "string",
+        "preset_id": 5,
+        "install_ssh_key": "",
+        "server_id": None,
+        "local_networks": []
+        }
+    }
+    print(data)
+
+    response = requests.post(
+        "https://public-api.timeweb.com/api/v1/vds",
+        headers=reqHeader,
+        json=data
+    )
+    print(response.json)
+
+    if not response.ok:
+        print(typer.style("Error", fg=typer.colors.RED))
+        sys.exit(1)
+    else:
+        response = response.json()
+        print(response)
+
+
+
 @servers_app.command("goto")
 def vds_goto(vds_id: Optional[int] = typer.Argument(None),
              port: int = typer.Option(22, help="Specify non standart SSH port.")):
