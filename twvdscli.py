@@ -499,9 +499,26 @@ def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
 def vds_create(
         name: str = typer.Option(..., help="VDS Name"),
         os_id: int = typer.Option(..., help="OS ID"),
-        preset: int = typer.Option(17, help="OS ID"),
+        preset: int = typer.Option(17, help="Preset ID"),
         comment: str = typer.Option("", help="Comment")
 ):
+    # get user group
+    group_uri = "https://public-api.timeweb.com/api/v1/accounts/{user}/group"
+    # get username from saved base64
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.getenv('HOME'), '.config', 'twvdscli.ini'))
+    based = config.get('api', 'key', fallback=None)
+    based = base64.b64decode(based)
+    based = str(based, 'utf-8')
+    user = based.split(':')[0]
+
+    group_id = requests.get(
+        group_uri.format(user=user), headers=reqHeader
+    )
+    # finally get group id
+    if group_id.ok:
+        group_id = group_id.json()['groups'][0]['id']
+
     data = {
       "server": {
         "configuration": {
@@ -514,30 +531,34 @@ def vds_create(
           "ddos_guard": False
         },
         "comment": comment,
-        "group_id": 350519, # https://public-api.timeweb.com/api/v1/accounts/{user}/group
+        "group_id": group_id, # https://public-api.timeweb.com/api/v1/accounts/{user}/group
         "name": "string", # what is this for?
-        "preset_id": preset, # you can not create vds without this, but how to create flexible vds? (example: 20)
+        "preset_id": preset, # you can not create vds without this, but how to create flexible vds? (preset example: 20)
         "install_ssh_key": "",
         "server_id": None,
         "local_networks": []
         }
     }
-    print(data)
 
     response = requests.post(
         "https://public-api.timeweb.com/api/v1/vds",
         headers=reqHeader,
         json=data
     )
-    print(response.json)
 
     if not response.ok:
         print(typer.style("Error", fg=typer.colors.RED))
         sys.exit(1)
     else:
         response = response.json()
-        print(response)
-
+    for frame in cycle(r'-\|/'):
+        state = Server.get_vds(response['server']['id'])
+        if state:
+            if state['server']['status'] == 'on':
+                print(typer.style("\nCreated: " + response['server']['configuration']['caption'], fg=typer.colors.GREEN))
+                break
+        print('\r', frame, sep='', end='', flush=True)
+        sleep(0.1)
 
 
 @servers_app.command("goto")
