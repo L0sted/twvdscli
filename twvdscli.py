@@ -498,7 +498,7 @@ def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
 @servers_app.command("create")
 def vds_create(
         name: str = typer.Option(..., help="VDS Name"),
-        os: int = typer.Option(..., help="OS ID"),
+        os_id: int = typer.Option(..., help="OS ID"),
         preset: int = typer.Option(17, help="OS ID"),
         comment: str = typer.Option("", help="Comment")
 ):
@@ -508,7 +508,7 @@ def vds_create(
           "caption": name,
           # "disk_size": 5, # dont give a fuck
           # "network_bandwidth": 100, # dont give a fuck
-          "os": os, # 47 - ubuntu 18.04
+          "os": os_id, # 47 - ubuntu 18.04
           # "xen_cpu": 2, # dont give a fuck
           # "xen_ram": 4096, # dont give a fuck
           "ddos_guard": False
