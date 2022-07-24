@@ -539,6 +539,37 @@ def vds_plans(raw: bool = typer.Option(False, help="Get result as raw json"),
     print(x)
 
 
+@vds_info_app.command("os")
+def vds_oses(raw: bool = typer.Option(False, help="Get result as raw json")):
+    uri = "https://public-api.timeweb.com/api/v1/os"
+    result = requests.get(uri, headers=reqHeader)
+
+    if not result.ok:
+        print('Error')
+        sys.exit(1)
+    # If raw - print raw result and exit
+    if raw:
+        print(result.text)
+        sys.exit(0)
+
+    # else print pretty
+    x = PrettyTable()
+    x.field_names = ['id', 'fullname', 'family', 'name', 'latin', 'available']
+    result = result.json()
+    print("Total: "+ str(result['meta']['total']))
+    # result = result
+    for i in result['os']:
+        x.add_row([
+            i['id'],
+            i['os_caption'],
+            i['os_type'],
+            i['os_name'],
+            i['os_latin'],
+            i['is_public']
+        ])
+    print(x)
+
+
 @servers_app.command("create")
 def vds_create(
         name: str = typer.Option(..., help="VDS Name"),
