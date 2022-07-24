@@ -16,18 +16,25 @@ from time import sleep
 
 
 app = typer.Typer()
-
+# twvdscli dbs
 dbs_app = typer.Typer()
 app.add_typer(dbs_app, name='dbs', help='Control Managed databases')
 
+# twvdscli vds
 servers_app = typer.Typer()
 app.add_typer(servers_app, name='vds', help='Control VDS Servers, their snapshots and backups')
 
+# twvdscli vds backups
 backups_app = typer.Typer()
 servers_app.add_typer(backups_app, name='backup', help='Create/Delete backup')
 
+# twvdscli vds snap
 snapshot_app = typer.Typer()
 servers_app.add_typer(snapshot_app, name='snap', help='Create/Rollback/Delete snapshot')
+
+# twvdscli vds info
+vds_info_app = typer.Typer()
+servers_app.add_typer(vds_info_app, name='info', help='Get info about plans and os\'es')
 
 
 class Dbaas:
@@ -493,6 +500,43 @@ def dbs_connect(db_id: Optional[int] = typer.Argument(None)):
     elif db_type == 'postgres':
         print("Password: ", db_pass)
         os.system(cmd_psql.format(ip=db_ip, login=db_user))
+
+
+@vds_info_app.command("plans")
+def vds_plans(raw: bool = typer.Option(False, help="Get result as raw json"),
+              sort_by: str = typer.Option(None, help="sort results by value/cpu/ram/disk")):
+    uri = "https://public-api.timeweb.com/api/v1/presets"
+    result = requests.get(uri, headers=reqHeader)
+
+    if not result.ok:
+        print('Error')
+        sys.exit(1)
+    # If raw - print raw result and exit
+    if raw:
+        print(result.text)
+        sys.exit(0)
+
+    # else print pretty
+    x = PrettyTable()
+    x.field_names = ['id', 'cpus', 'ram', 'disk', 'value', 'name', 'description']
+    result = result.json()
+    print("Total: "+ str(result['meta']['total']))
+    # result = result
+    for i in result['presets']:
+        x.add_row([
+            i['id'],
+            i['cpu'],
+            i['ram'],
+            i['drive'],
+            i['discount_value'],
+            i['name'],
+            i['description']
+        ])
+        if sort_by in ('cpus', 'ram', 'disk', 'value'):
+            x.sortby = sort_by
+        elif not sort_by is None:
+            print("No such sort")
+    print(x)
 
 
 @servers_app.command("create")
